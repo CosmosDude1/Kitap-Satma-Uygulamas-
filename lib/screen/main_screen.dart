@@ -22,6 +22,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   String? currentUserId;
+  String searchQuery = '';
 
   @override
   void initState() {
@@ -118,6 +119,21 @@ class _MainScreenState extends State<MainScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            TextField(
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value.trim();
+                });
+              },
+              decoration: InputDecoration(
+                labelText: 'Kitap Ara',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
             const Text(
               'Öne Çıkan Ürünler',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -137,12 +153,16 @@ class _MainScreenState extends State<MainScreen> {
 
                   final books = snapshot.data!.docs.where((book) {
                     final seller_id = book['user_id'] as String;
-                    return seller_id != currentUserId;
+                    final bookName = book['book_name']?.toLowerCase() ?? '';
+                    final matchesSearch = searchQuery.isEmpty ||
+                        bookName.contains(searchQuery.toLowerCase());
+                    return seller_id != currentUserId && matchesSearch;
                   }).toList();
 
                   if (books.isEmpty) {
                     return const Center(
-                        child: Text('Satın alabileceğiniz kitap bulunmuyor.'));
+                        child: Text(
+                            'Aradığınız kriterlere uygun kitap bulunmuyor.'));
                   }
 
                   return GridView.builder(
